@@ -2,19 +2,19 @@ require 'rubygems'
 require 'json'
 require 'net/https'
 require 'net/http'
-
+require 'pp'
 
 module Mixi
-  CONSUMER_KEY = "[YOUR CONSUMER KEY]"
-  CONSUMER_SECRET = "[YOUR CONSUMER SECRET]"
-  REDIRECT_URI = "[YOUR REDIRECT URI]"
+  CONSUMER_KEY = '1dfbd65727d594eee136'
+  CONSUMER_SECRET = '4193262f0aaa9f8af607da455efd25983ebacb1e'
+  REDIRECT_URI = 'http://localhost:8008'
 
   class Client
     def self.example
       raise 'authcode is mandatory.' if ARGV.empty?
       client = Mixi::Client.new
       client.authorize! ARGV.first
-      client.call '/people/@me/@self'
+      pp client.call('/people/@me/@self')
     end
 
     def authorize!(auth_code)
