@@ -24,7 +24,6 @@ module Mixi
       https.use_ssl = true
       https.start do
         response = https.post('/2/token', params).body
-        p response
         json = JSON.parse(response)
         @access_token = json['access_token']
         @refresh_token = json['refresh_token']
@@ -37,7 +36,6 @@ module Mixi
         response = http.get("/2#{endpoint}",
                             'Authorization' => "OAuth #{@access_token}",
                             'HOST' => 'api.mixi-platform.com').body
-        p response
         JSON.parse(response)
       end
     end
