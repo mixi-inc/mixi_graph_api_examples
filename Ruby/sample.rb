@@ -5,9 +5,9 @@ require 'net/http'
 require 'pp'
 
 module Mixi
-  CONSUMER_KEY = '1dfbd65727d594eee136'
-  CONSUMER_SECRET = '4193262f0aaa9f8af607da455efd25983ebacb1e'
-  REDIRECT_URI = 'http://localhost:8008'
+  CONSUMER_KEY = 'YOUR CLIENT ID'
+  CONSUMER_SECRET = 'YOUR CONSUMER SECRET'
+  REDIRECT_URI = 'YOUR REDIRECT URI'
 
   class Client
     def self.example
