@@ -1,0 +1,3 @@
+[submodule "android/oauth_people"]
+	path = android/oauth_people
+	url = git://github.com/tnj/AndroidOAuthExample.git
