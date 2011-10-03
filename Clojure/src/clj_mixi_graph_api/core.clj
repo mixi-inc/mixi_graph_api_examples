@@ -50,7 +50,10 @@
   (mk-token (json/parse-string content)))
 
 (defn read-people
-  [{token-info :token user-id :user-id group-id :group-id res-format :format}]
+  [{token-info :token
+    user-id    :user-id
+    group-id   :group-id
+    res-format :format}]
   (http/get (str (endpoint :api) "/people/" user-id "/" group-id)
             :query {:format      res-format
                     :oauth_token (token-info :access-token)}
@@ -65,7 +68,8 @@
 (defn get-oauth-error [{oauth-error :WWW-Authenticate}]
   (nth (re-find #"OAuth error='(.+)'" oauth-error) 1))
 
-(defn has-oauth-error? [{oauth-error :WWW-Authenticate}] oauth-error)
+(defn has-oauth-error? [{oauth-error :WWW-Authenticate}]
+  (not (nil? oauth-error)))
 
 (defn expired? [resp]
   (let [built-headers (build-headers (:headers resp))]
@@ -73,7 +77,9 @@
       (has-oauth-error? built-headers)
       (= "expired_token" (get-oauth-error built-headers)))))
 
-(defn get-my-friends [token-info]
+(defn get-my-friends
+  "sample of accessing a protected resource"
+  [token-info]
   (let [resp (read-people {:token    token-info
                            :user-id  "@me"
                            :group-id "@friends"
