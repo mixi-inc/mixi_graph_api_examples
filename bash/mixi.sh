@@ -103,32 +103,35 @@ retval=1
 
 case "$1" in
     auth | refresh)
-       if [ $# -ne 2 ]; then
-           usage_$1
-           retval=1
-       else
-           $1 $2
-           retval=$?
-       fi
-       ;;
+        if [ $# -ne 2 ]; then
+            usage_$1
+            retval=1
+        else
+            $1 $2
+            retval=$?
+        fi
+        ;;
     people)
-       if [ $# -ne 3 ]; then
-          usage_people
-       else
-          case "$2" in
-              self | friends)
-                  people $2 $3
-                  ;;
-              *)
-                  usage_people
-                  ;;
-          esac
-       fi
-       ;;
+        if [ $# -ne 3 ]; then
+            usage_people
+            retval=1
+        else
+            case "$2" in
+                self | friends)
+                    people $2 $3
+                    retval=$?
+                    ;;
+                *)
+                    usage_people
+                    retval=1
+                    ;;
+            esac
+        fi
+        ;;
     *)
-       usage
-       retval=1
-       ;;
+        usage
+        retval=1
+        ;;
 esac
 
 exit $retval
