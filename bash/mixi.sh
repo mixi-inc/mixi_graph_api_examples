@@ -75,8 +75,8 @@ people() {
     fi
 
     local line_count=`echo "$result" | wc -l`
-    line_count=`expr $line_count - 1`
-    local content=`echo "$result" | head -n $line_count`
+    local content_line_count=`expr $line_count - 1`
+    local content=`echo "$result" | head -n $content_line_count`
 
     echo_json "$content"
 
@@ -84,19 +84,19 @@ people() {
 }
 
 usage() {
-    echo "Usage: $0 {auth|refresh|people} OPTIONS"
+    echo "Usage: $0 {auth|refresh|people} OPTIONS" >&2
 }
 
 usage_auth() {
-    echo "Usage: $0 auth CODE"
+    echo "Usage: $0 auth CODE" >&2
 }
 
 usage_refresh() {
-    echo "Usage: $0 refresh REFRESH_TOKEN"
+    echo "Usage: $0 refresh REFRESH_TOKEN" >&2
 }
 
 usage_people() {
-    echo "Usage: $0 people {self|friends} ACCESS_TOKEN"
+    echo "Usage: $0 people {self|friends} ACCESS_TOKEN" >&2
 }
 
 retval=1
