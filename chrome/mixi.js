@@ -1,6 +1,6 @@
-var CLIENT_ID = "1dfbd65727d594eee136";
-var CLIENT_SECRET = "4193262f0aaa9f8af607da455efd25983ebacb1e";
-var REDIRECT_URI = encodeURIComponent("http://localhost:8008");
+var CLIENT_ID = "YOUR CLIENT ID";
+var CLIENT_SECRET = "YOUR CLIENT SECRET";
+var REDIRECT_URI = encodeURIComponent("YOUR REDIRECT URI");
 
 function authorize(code) {
   var xhr = new XMLHttpRequest();
