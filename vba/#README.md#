@@ -1,0 +1,27 @@
+# ’¼Â’¹Ô’Êý’Ë¡
+
+## ’½à’È÷
+
+’Ç¤’°Õ’¤Î’¥¨’¥¯’¥»’¥ë’¤ÎSheet1’¤Ë’ËÜ’¥³’¡¼’¥É’¤ò’Å½’¤ê’ÉÕ’¤±’¡¢’¥Õ’¥©’¡¼’¥à’¤Ë’¥Ü’¥¿’¥ó’¤ò’£³’¤Ä’ÄÉ’²Ã’¤¹’¤ë’¡£
+
+    Btn_GetAccessToken ’¡ÊAuthorization code’¤ÇAccess token’¤ò’¼è’ÆÀ’¤¹’¤ë’¡Ë
+    Btn_GetProfile ’¡ÊPeople API’¤Ç’¥×’¥í’¥Õ’¥£’¡¼’¥ë’¾ð’Êó’¤ò’¼è’ÆÀ’¤¹’¤ë’¡Ë
+    Btn_Refresh ’¡ÊRefresh token’¤ÇAccess token’¤ò’ºÆ’È¯’¹Ô’¤¹’¤ë’¡Ë
+
+## Authorization code’¤Î’Æþ’¼ê
+
+’°Ê’²¼’¤ÎURL’¤ËWeb’¥Ö’¥é’¥¦’¥¶’¤Ë’¤Æ’¥¢’¥¯’¥»’¥¹’¤·’¡¢’¥ê’¥À’¥¤’¥ì’¥¯’¥È’Àè’¤Ë’´Þ’¤Þ’¤ì’¤ëcode’¥Ñ’¥é’¥á’¡¼’¥¿’ÃÍ’¤ò’Æþ’¼ê’¤¹’¤ë’¡£
+
+    https://mixi.jp/connect_authorize.pl?client_id=Consumer key&scope=r_profile
+    
+## ’°Ê’²¼’¤Î’¥»’¥ë’¤Ë’¤½’¤ì’¤¾’¤ì’ÃÍ’¤ò’Æþ’ÎÏ’¤¹’¤ë
+
+    Private Const CL_CLIENT_ID = "C5"          ' Consumer key
+    Private Const CL_CLIENT_SECRET = "C6"      ' Consumer Secret
+    Private Const CL_REDIRECT_URI = "C7"       ' Redirect URI
+    Private Const CL_AUTHORIZATION_CODE = "C8" ' Authorization Code
+
+## ’¼Â’¹Ô
+
+example01.Main ’¤Ç’¤Ï’¥æ’¡¼’¥¶ID’¤È’¥°’¥ë’¡¼’¥×ID’¤Î’Æþ’ÎÏ’ÂÔ’¤Á’¤Ë’¤Ê’¤ê’¤Þ’¤¹’¡£’¤½’¤ì’¤¾’¤ì’¤ò’¥¹’¥Ú’¡¼’¥¹’¶è’ÀÚ’¤ê’¤Ç’Æþ’ÎÏ’¤·’¤Þ’¤¹’¡£
+example02.Main ’¤Ï’Í§’¿Í’°ì’Í÷’¤ò’¼è’ÆÀ’¤·’¤Æ’½ª’Î»’¤·’¤Þ’¤¹’¡£
