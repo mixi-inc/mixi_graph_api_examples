@@ -1,0 +1,20 @@
+<html>
+<head>
+<meta charset=utf-8 />
+<script src="./mixi.js"></script>
+</head>
+<body>
+<ol>
+  <li>
+    <button onclick="javascript:window.open('https://mixi.jp/connect_authorize.pl?client_id=1dfbd65727d594eee136&scope=r_profile');">認可</button>をクリックして認可し、クエリパラメータのcodeの値をコピーしてください。
+  </li>
+  <li>
+    コピーした値を<input id="code" name="code" />にペーストし、<button onclick="javascript:authorize(document.getElementById('code').value);">アクセストークン取得</button>をクリックしてください。
+  </li>
+  <li>
+    アクセストークン（<span id="access_token">未取得</span>）が取得されたら<button onclick="javascript:call(document.getElementById('access_token').innerHTML);">API呼び出し</button>をクリックしてください。
+  </li>
+</ol>
+<textarea id="json" style="border:none; width:100%; height:300px;"></textarea>
+</body>
+</html>

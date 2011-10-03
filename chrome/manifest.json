@@ -1,0 +1,13 @@
+{
+  "name": "Mixi Chrome Extension Example",
+  "version": "1.0",
+  "description": "Use mixi Graph API",
+  "app": {
+    "launch": {
+      "local_path": "mixi.html"
+    }
+  },
+  "permissions": [
+    "*://*.mixi-platform.com/"
+  ]
+}
