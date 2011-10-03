@@ -1,0 +1,317 @@
+Private Const CL_CLIENT_ID = "C5"          ' Consumer key
+Private Const CL_CLIENT_SECRET = "C6"      ' Consumer Secret
+Private Const CL_REDIRECT_URI = "C7"       ' Redirect URI
+Private Const CL_AUTHORIZATION_CODE = "C8" ' Authorization Code
+Private Const CL_ACCESS_TOKEN = "C14"
+Private Const CL_REFRESH_TOKEN = "C15"
+Private Const CL_DISPLAY_NAME = "C21"
+Private Const CL_THUMBNAIL_URL = "C22"
+Private Const CL_PROFILE_URL = "C23"
+Private Const AUTH_ENDPOINT = "https://secure.mixi-platform.com/2"
+Private Const API_ENDPOINT = "http://api.mixi-platform.com/2"
+
+
+'---------------------------------------------------------------------
+' On Click the button "Get your access token with authorization code."
+'---------------------------------------------------------------------
+Private Sub Btn_GetAccessToken_Click()
+    
+    Dim objJSON As Object
+    
+    Sheet1.Range(CL_ACCESS_TOKEN, CL_REFRESH_TOKEN) = ""
+    
+    On Error GoTo ErrorHandler
+    
+    Set objJSON = getAccessToken()
+
+    Sheet1.Range(CL_ACCESS_TOKEN) = objJSON.access_token
+    Sheet1.Range(CL_REFRESH_TOKEN) = objJSON.refresh_token
+    
+    MsgBox "Success : Get your access token with authorization code."
+    Exit Sub
+    
+ErrorHandler:
+    MsgBox "Failure : Get your access token with authorization code."
+    Set objJSON = Nothing
+
+End Sub
+
+
+'-----------------------------------------------
+' Get your access token with authorization code.
+'-----------------------------------------------
+Private Function getAccessToken() As Object
+
+    Dim errFlg As Boolean
+    Dim params As Variant
+    Dim objHTTP As Object
+    Dim url As String
+    Dim sc As Object
+    Dim objJSON As Object
+    Dim clientId As String
+    Dim clientSecret As String
+    Dim authorizationCode As String
+    Dim redirectUri As String
+    
+    clientId = Sheet1.Range(CL_CLIENT_ID).Text
+    clientSecret = Sheet1.Range(CL_CLIENT_SECRET).Text
+    redirectUri = Sheet1.Range(CL_REDIRECT_URI).Text
+    authorizationCode = Sheet1.Range(CL_AUTHORIZATION_CODE).Text
+
+    Set objHTTP = CreateHttpObject()
+    If objHTTP Is Nothing Then
+        MsgBox ("Error : CreateHttpObject")
+        errFlg = True
+        GoTo Finally
+    End If
+    
+    url = AUTH_ENDPOINT & "/token"
+    params = "grant_type=authorization_code"
+    params = params & "&client_id=" & clientId
+    params = params & "&client_secret=" & clientSecret
+    params = params & "&redirect_uri=" & redirectUri
+    params = params & "&code=" & authorizationCode
+    
+    Call objHTTP.Open("POST", url, False)
+    Call objHTTP.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded")
+    Call objHTTP.SetRequestHeader("Content-Length", Len(params))
+    Call objHTTP.Send(params)
+    If objHTTP.Status <> 200 Then
+        MsgBox "Error : " & objHTTP.Status & "(" & objHTTP.statusText & ") "
+        errFlg = True
+        GoTo Finally
+    End If
+    
+    Set sc = CreateScriptControl()
+    Set objJSON = sc.CodeObject.jsonParse(objHTTP.responseText)
+         
+    Set getAccessToken = objJSON
+    
+Finally:
+    Set objHTTP = Nothing
+    Set objJSON = Nothing
+    Set sc = Nothing
+    If errFlg = True Then
+        Err.Raise -1
+    End If
+
+End Function
+
+
+'----------------------------------------
+' On Click the button "Get your profile."
+'----------------------------------------
+Private Sub Btn_GetProfile_Click()
+    
+    Dim objJSON As Object
+    
+    Sheet1.Range(CL_DISPLAY_NAME, CL_PROFILE_URL) = ""
+    
+    On Error GoTo ErrorHandler
+    
+    Set objJSON = getProfile()
+    
+    ' 画面に値をセット
+    Sheet1.Range(CL_DISPLAY_NAME) = objJSON.entry.myDisplayName
+    Sheet1.Range(CL_THUMBNAIL_URL) = objJSON.entry.thumbnailUrl
+    Sheet1.Range(CL_PROFILE_URL) = objJSON.entry.profileUrl
+
+    MsgBox "Success : Get your profile."
+    Exit Sub
+    
+ErrorHandler:
+    MsgBox "Failure : Get your profile."
+    Set objJSON = Nothing
+    
+End Sub
+
+
+'----------------------
+' Get your profile.
+'----------------------
+Private Function getProfile() As Object
+    
+    Dim errFlg As Boolean
+    Dim params As Variant
+    Dim objHTTP As Object
+    Dim url As String
+    Dim ret As Variant
+    Dim sc As Object
+    Dim objJSON As Object
+    Dim accessToken As String
+    
+    accessToken = Sheet1.Range(CL_ACCESS_TOKEN).Value
+   
+    Set objHTTP = CreateHttpObject()
+    If objHTTP Is Nothing Then
+        MsgBox ("Error : CreateHttpObject")
+        errFlg = True
+        GoTo Finally
+    End If
+    
+    url = API_ENDPOINT & "/people/@me/@self?oauth_token=" & accessToken
+        
+    Call objHTTP.Open("GET", url, False)
+    Call objHTTP.Send
+    If objHTTP.Status <> 200 Then
+        MsgBox "Error : " & objHTTP.Status & "(" & objHTTP.statusText & ") "
+        errFlg = True
+        GoTo Finally
+    End If
+    
+    ret = objHTTP.responseText
+    ret = Replace(ret, "displayName", "myDisplayName")
+    
+    Set sc = CreateScriptControl
+    Set objJSON = sc.CodeObject.jsonParse(ret)
+    
+    Set getProfile = objJSON
+    
+Finally:
+    Set objHTTP = Nothing
+    Set objJSON = Nothing
+    Set sc = Nothing
+    If errFlg = True Then
+        Err.Raise -2
+    End If
+    
+End Function
+
+
+'----------------------------------------------------------------
+' On Click the button "Get your access token with refresh token."
+'----------------------------------------------------------------
+Private Sub Btn_Refresh_Click()
+
+    Dim objJSON As Object
+    
+    Sheet1.Range(CL_ACCESS_TOKEN) = ""
+    
+    On Error GoTo ErrorHandler
+    
+    Set objJSON = refresh()
+
+    Sheet1.Range(CL_ACCESS_TOKEN) = objJSON.access_token
+    
+    MsgBox "Success : Get your access token with refresh token."
+    Exit Sub
+    
+ErrorHandler:
+    MsgBox "Failure : Get your access token with refresh token."
+    Set objJSON = Nothing
+    
+End Sub
+
+
+'-----------------------------------------------
+' Get your access token with refresh token.
+'-----------------------------------------------
+Private Function refresh() As Object
+
+    Dim errFlg As Boolean
+    Dim params As Variant
+    Dim objHTTP As Object
+    Dim url As String
+    Dim sc As Object
+    Dim objJSON As Object
+    Dim clientId As String
+    Dim clientSecret As String
+    Dim refreshToken As String
+    
+    clientId = Sheet1.Range(CL_CLIENT_ID).Text
+    clientSecret = Sheet1.Range(CL_CLIENT_SECRET).Text
+    refreshToken = Sheet1.Range(CL_REFRESH_TOKEN).Text
+
+    Set objHTTP = CreateHttpObject()
+    If objHTTP Is Nothing Then
+        MsgBox ("Error : CreateHttpObject")
+        errFlg = True
+        GoTo Finally
+    End If
+    
+    url = AUTH_ENDPOINT & "/token"
+    params = "grant_type=refresh_token"
+    params = params & "&client_id=" & clientId
+    params = params & "&client_secret=" & clientSecret
+    params = params & "&refresh_token=" & refreshToken
+    
+    Call objHTTP.Open("POST", url, False)
+    Call objHTTP.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded")
+    Call objHTTP.SetRequestHeader("Content-Length", Len(params))
+    Call objHTTP.Send(params)
+    If objHTTP.Status <> 200 Then
+        MsgBox "Error : " & objHTTP.Status & "(" & objHTTP.statusText & ") "
+        errFlg = True
+        GoTo Finally
+    End If
+    
+    Set sc = CreateScriptControl()
+    Set objJSON = sc.CodeObject.jsonParse(objHTTP.responseText)
+         
+    Set refresh = objJSON
+    
+Finally:
+    Set objHTTP = Nothing
+    Set objJSON = Nothing
+    Set sc = Nothing
+    If errFlg = True Then
+        Err.Raise -3
+    End If
+
+End Function
+
+
+'--------------------------------------
+' Create ScriptControl Object for JSON
+'--------------------------------------
+Private Function CreateScriptControl() As Object
+
+    Dim sc      As Object
+    Dim strFunc As String
+    
+    strFunc = "function jsonParse(s) { return eval('(' + s + ')'); }"
+    
+    Set sc = CreateObject("ScriptControl")
+    sc.Language = "JScript"
+    sc.AddCode strFunc
+    
+    Set CreateScriptControl = sc
+    Set sc = Nothing
+    
+End Function
+
+
+'----------------------
+' Create HttpObject
+'----------------------
+Private Function CreateHttpObject() As Object
+    
+    Dim objHTTP As Object
+    
+    Err.Clear
+    Set objHTTP = CreateObject("MSXML2.ServerXMLHTTP.6.0")
+    If Err.Number = 0 Then
+        Set CreateHttpObject = objHTTP
+        Exit Function
+    End If
+
+    Err.Clear
+    Set objHTTP = CreateObject("MSXML2.ServerXMLHTTP")
+    If Err.Number = 0 Then
+        Set CreateHttpObject = objHTTP
+        Exit Function
+    End If
+
+    Err.Clear
+    Set objHTTP = CreateObject("MSXML2.XMLHTTP")
+    If Err.Number = 0 Then
+        Set CreateHttpObject = objHTTP
+        Exit Function
+    End If
+
+    Set objHTTP = Nothing
+    Set CreateHttpObject = Nothing
+
+End Function
+
+    
