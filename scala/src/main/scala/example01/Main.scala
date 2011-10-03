@@ -34,8 +34,8 @@ object Main {
   import JsonSerialization.fromjson
   import Protocols._
 
-  val CONSUMER_KEY    = "3c5b3c9653f2afef6f58"
-  val CONSUMER_SECRET = "48de82bbe76854ba1da84c21185c4c4ddc1bd22b"
+  val CONSUMER_KEY    = "<Your consumer key>"
+  val CONSUMER_SECRET = "<Your consumer secret>"
 
   val TOKEN_ENDPOINT    = "https://secure.mixi-platform.com/2/token"
   val API_ENDPOINT_BASE = "http://api.mixi-platform.com/2"
