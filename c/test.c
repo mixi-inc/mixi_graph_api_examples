@@ -262,7 +262,7 @@ int main(argc, argv)
 
   struct client_credential cc = {
     "aa67b0abb047fcdde340",
-    "c14d98f3f0e894489b274435842d849ec454fc11",
+    "YOUR CLIENT SECRET",
     "http%3A%2F%2Fmixi.jp%2Fconnect_authorize_success.html"
   };
 
