@@ -1,0 +1,11 @@
+<html>
+    <head>
+    <title>python sample code for mixi graph api</title>
+    </head>
+    <body>
+        <h1>友人一覧</h1><br />
+        {% for row in results %}
+        <img src={{row.thumbnailUrl}} width=72 height=72><a href={{row.profileUrl}}>{{row.displayName}}</a><br />
+        {% endfor %}
+    </body>
+</html>
