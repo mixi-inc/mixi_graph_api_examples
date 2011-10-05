@@ -11,6 +11,6 @@
     CLX(http://clx.cielquis.net/)
 
 ## 実行
-1.Makefileを必要に応じて変更する
-2.makeを実行する
-3.mixi_sample 取得したAuthorization Code を実行
+    1. Makefileを必要に応じて変更する
+    2. makeを実行する
+    3. mixi_sample 取得したAuthorization Code を実行
