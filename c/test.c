@@ -7,7 +7,6 @@
 #include <netinet/in.h>
 #include <sys/uio.h>
 #include <unistd.h>
-
 #include <openssl/crypto.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -31,6 +30,12 @@ struct http_response {
   char* body;
 };
 
+int get_string_byte_length(source)
+     char* source;
+{
+  return strlen(source) * sizeof(char);
+}
+
 char* new_json_property_value(json, property_name)
      char* json;
      char* property_name;
@@ -42,7 +47,7 @@ char* new_json_property_value(json, property_name)
   char* result;
 
   len = strlen(property_name);
-  property = (char*)malloc(sizeof(char) * len + 3);
+  property = (char*)malloc(sizeof(char) * (len + 3));
   property[0] = '"';
   strncpy(property + 1, property_name, len);
   property[len + 1] = '"';
@@ -52,7 +57,7 @@ char* new_json_property_value(json, property_name)
   end_pos = strstr(base_pos, "\"");
   len = (int)(end_pos - base_pos);
 
-  result = (char*)malloc(sizeof(char) * len + 1);
+  result = (char*)malloc(sizeof(char) * (len + 1));
   strncpy(result, base_pos, len);
   result[len] = '\0';
 
@@ -85,7 +90,7 @@ char* new_http_response_body(response)
   buf[len] = '\0';
   len = (int)strtol(buf, NULL, 16);
 
-  body = (char*)malloc(sizeof(char) * len + 1);
+  body = (char*)malloc(sizeof(char) * (len + 1));
   strncpy(body, temp_pos + 2, len);
   body[len] = '\0';
 
@@ -178,6 +183,8 @@ void send_issue_token_request(cc, authorization_code, host, path, ssl)
   int ret;
   char request[2048];
   char post_body[2048];
+  int len;
+  
 
   sprintf(post_body,
           "grant_type=authorization_code&client_id=%s"
@@ -193,7 +200,7 @@ void send_issue_token_request(cc, authorization_code, host, path, ssl)
           "Content-Length: %d\r\n\r\n%s",
           path,
           host,
-          (int)strlen(post_body),
+          (int)strlen(post_body) * sizeof(char),
           post_body);
   ret = SSL_write(ssl, request, strlen(request));
   if (ret < 1) {
