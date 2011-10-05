@@ -26,6 +26,40 @@ struct client_credential {
   char* redirect_uri;
 };
 
+struct http_response {
+  int status_code;
+  char* body;
+};
+
+char* new_json_property_value(json, property_name)
+     char* json;
+     char* property_name;
+{
+  char* property;
+  int len;
+  char* base_pos;
+  char* end_pos;
+  char* result;
+
+  len = strlen(property_name);
+  property = (char*)malloc(sizeof(char) * len + 3);
+  property[0] = '"';
+  strncpy(property + 1, property_name, len);
+  property[len + 1] = '"';
+  property[len + 2] = '\0';
+
+  base_pos = strstr(json, property) + strlen(property) + 2;
+  end_pos = strstr(base_pos, "\"");
+  len = (int)(end_pos - base_pos);
+
+  result = (char*)malloc(sizeof(char) * len + 1);
+  strncpy(result, base_pos, len);
+  result[len] = '\0';
+
+  free(property);
+  return result;
+}
+
 int get_http_status_code(response)
      const char* response;
 {
@@ -58,8 +92,9 @@ char* new_http_response_body(response)
   return body;
 }
 
-int connect_with_ssl(host, path)
+int connect_to_server(host, port, path)
      char* host;
+     int port;
      char* path;
 {
   int s;
@@ -75,7 +110,7 @@ int connect_with_ssl(host, path)
   memset((char*)&server, 0, sizeof(server));
   server.sin_family = AF_INET;
   memcpy((char*)&server.sin_addr, servhost->h_addr, servhost->h_length);
-  server.sin_port = htons(443);
+  server.sin_port = htons(port);
   s = socket(AF_INET, SOCK_STREAM, 0);
   if (s < 0) {
     fprintf(stderr, "Failed to create a socket.\n");
@@ -219,24 +254,22 @@ void close_connection(s, ssl)
   ERR_free_strings();
 }
 
-char* issue_token(cc, authorization_code)
+struct http_response issue_token(cc, authorization_code)
      struct client_credential cc;
      char* authorization_code;
 {
   char* host;
   char* path;
-
+  char* response;
   int ret;
   int s;
-
-  char* response;
-
   struct ssl_info ssl;
+  struct http_response result;
 
   host = "secure.mixi-platform.com";
   path = "/2/token";
 
-  s = connect_with_ssl(host, path);
+  s = connect_to_server(host, 443, path);
   ssl = ssl_initialize(s);
 
   send_issue_token_request(cc, authorization_code, host, path, ssl.ssl);
@@ -244,16 +277,20 @@ char* issue_token(cc, authorization_code)
 
   close_connection(s, ssl);
 
-  return response;
+  result.status_code = get_http_status_code(response);
+  result.body = new_http_response_body(response);
+
+  free(response);
+  return result;
 }
 
 int main(argc, argv)
      int argc;
      char* argv[];
 {
-  char* token_response;
-  int token_status_code;
-  char* token_body;
+  char* error;
+  char* access_token;
+  struct http_response token_response;
 
   if (argc != 2) {
     printf("Error: Authorization code is required.\n");
@@ -262,20 +299,22 @@ int main(argc, argv)
 
   struct client_credential cc = {
     "aa67b0abb047fcdde340",
-    "YOUR CLIENT SECRET",
+    "",
     "http%3A%2F%2Fmixi.jp%2Fconnect_authorize_success.html"
   };
 
   token_response = issue_token(cc, argv[1]);
-  token_status_code = get_http_status_code(token_response);
-  token_body = new_http_response_body(token_response);
-  if (token_status_code != 200) {
-    printf("Error: (%d) %s\n", token_status_code, token_body);
+  if (token_response.status_code != 200) {
+    error = new_json_property_value(token_response.body, "error");
+    printf("Error: (%d) %s\n", token_response.status_code, error);
+    free(error);
   } else {
+    access_token = new_json_property_value(token_response.body, "access_token");
+    
+    free(access_token);
   }
 
-  free(token_body);
-  free(token_response);
+  free(token_response.body);
 
   return 0;
 }
