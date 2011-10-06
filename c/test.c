@@ -7,12 +7,18 @@
 #include <netinet/in.h>
 #include <sys/uio.h>
 #include <unistd.h>
+#include <math.h>
 #include <openssl/crypto.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <openssl/rand.h>
 
 #define BUF_LEN 256
+
+enum ePROTOCOL {
+  HTTP,
+  HTTPS
+};
 
 struct ssl_info {
   SSL* ssl;
@@ -30,16 +36,37 @@ struct http_response {
   char* body;
 };
 
-int get_string_byte_length(source)
-     char* source;
-{
+char* new_concat_strings(int len, ...) {
+  va_list strings;
+  int i;
+  char* string;
+  int all_len;
+  char* result;
+
+  va_start(strings, len);
+  all_len = 0;
+  for (i = 0; i < len; i++) {
+    string = va_arg(strings, char*);
+    all_len += strlen(string);
+  }
+  va_end(strings);
+
+  result = (char*)malloc(sizeof(char) * (all_len + 1));
+  va_start(strings, len);
+  for (i = 0; i < len; i++) {
+    strcat(result, va_arg(strings, char*));
+  }
+  va_end(strings);
+
+  result[all_len] = '\0';
+  return result;
+}
+
+int get_string_byte_length(char* source) {
   return strlen(source) * sizeof(char);
 }
 
-char* new_json_property_value(json, property_name)
-     char* json;
-     char* property_name;
-{
+char* new_json_property_value(char* json, char* property_name) {
   char* property;
   int len;
   char* base_pos;
@@ -65,18 +92,14 @@ char* new_json_property_value(json, property_name)
   return result;
 }
 
-int get_http_status_code(response)
-     const char* response;
-{
+int get_http_status_code(const char* response) {
   char buf[3];
 
   strncpy(buf, response + sizeof(char) * 9, 3);
   return atoi(buf);
 }
 
-char* new_http_response_body(response)
-     const char* response;
-{
+char* new_http_response_body(const char* response) {
   char* body;
   char* base_pos;
   char* temp_pos;
@@ -97,11 +120,7 @@ char* new_http_response_body(response)
   return body;
 }
 
-int connect_to_server(host, port, path)
-     char* host;
-     int port;
-     char* path;
-{
+int connect_to_server(char* host, int port, char* path) {
   int s;
 
   struct hostent* servhost;
@@ -129,9 +148,7 @@ int connect_to_server(host, port, path)
   return s;
 }
 
-struct ssl_info ssl_initialize(s)
-     int s;
-{
+struct ssl_info ssl_initialize(int s) {
   int ret;
   unsigned short rand_ret;
 
@@ -173,45 +190,85 @@ struct ssl_info ssl_initialize(s)
   return result;
 }
 
-void send_issue_token_request(cc, authorization_code, host, path, ssl)
-     struct client_credential cc;
-     char* authorization_code;
-     char* host;
-     char* path;
-     SSL* ssl;
-{
+void send_issue_token_request(struct client_credential cc,
+                              char* authorization_code,
+                              char* host,
+                              char* path,
+                              SSL* ssl) {
   int ret;
-  char request[2048];
-  char post_body[2048];
   int len;
-  
+  char* post_body;
+  char* request;
+  char* post_body_len;
 
-  sprintf(post_body,
-          "grant_type=authorization_code&client_id=%s"
-          "&client_secret=%s&redirect_uri=%s&code=%s",
-          cc.client_id,
-          cc.client_secret,
-          cc.redirect_uri,
-          authorization_code);
-  sprintf(request,
-          "POST %s HTTP/1.1\r\n"
-          "Host: %s\r\n"
-          "Content-Type: application/x-www-form-urlencoded\r\n"
-          "Content-Length: %d\r\n\r\n%s",
-          path,
-          host,
-          (int)strlen(post_body) * sizeof(char),
-          post_body);
+  post_body =
+    new_concat_strings(8,
+                       "grant_type=authorization_code&client_id=",
+                       cc.client_id,
+                       "&client_secret=",
+                       cc.client_secret,
+                       "&redirect_uri=",
+                       cc.redirect_uri,
+                       "&code=",
+                       authorization_code);
+  len = (int)(strlen(post_body) * sizeof(char));
+  post_body_len = (char*)malloc(sizeof(char) * ((int)log10(len) + 2));
+  sprintf(post_body_len, "%d", len);
+  request =
+    new_concat_strings(11,
+                       "POST ",
+                       path,
+                       " HTTP/1.1\r\n",
+                       "Host: ",
+                       host,
+                       "\r\n",
+                       "Content-Type: application/x-www-form-urlencoded\r\n",
+                       "Content-Length: ",
+                       post_body_len,
+                       "\r\n\r\n",
+                       post_body);
+  printf("%s\n", request);
   ret = SSL_write(ssl, request, strlen(request));
   if (ret < 1) {
     ERR_print_errors_fp(stderr);
     exit(1);
   }
+
+  free(post_body);
+  free(post_body_len);
+  free(request);
 }
 
-char* receive_issue_token_response(ssl)
-     SSL* ssl;
-{
+void send_get_my_profile_request(char* access_token,
+                                 char* host,
+                                 char* path,
+                                 int s) {
+  char* request;
+  int ret;
+
+  request =
+    new_concat_strings(10,
+                       "GET ",
+                       path,
+                       " HTTP/1.1\r\n",
+                       "Host: ",
+                       host,
+                       "\r\n",
+                       "Accept: application/json\r\n",
+                       "Authorization: OAuth ",
+                       access_token,
+                       "\r\n\r\n");
+  printf("%s\n", request);
+  ret = write(s, request, strlen(request));
+  if (ret < 1) {
+    ERR_print_errors_fp(stderr);
+    exit(1);
+  }
+
+  free(request);
+}
+
+char* receive_http_response(enum ePROTOCOL protocol, int s, SSL* ssl) {
   int cnt;
   int sum;
   int read_size;
@@ -223,11 +280,15 @@ char* receive_issue_token_response(ssl)
   cnt = 1;
   sum = 0;
   while(1) {
-    read_size = SSL_read(ssl, buf, sizeof(buf));
+    if (protocol == HTTPS) {
+      read_size = SSL_read(ssl, buf, sizeof(buf));
+    } else {
+      read_size = read(s, buf, sizeof(buf));
+    }
     if (read_size > 0) {
       if ((sum + read_size + 1) > (sizeof(char) * BUF_LEN * cnt)) {
         response = (char*)realloc(response,
-                                  sizeof(char) * BUF_LEN * ++cnt + 1);
+                                  sizeof(char) * (BUF_LEN * ++cnt + 1));
       }
       memcpy(response + sum, buf, read_size);
       sum += read_size;
@@ -239,32 +300,29 @@ char* receive_issue_token_response(ssl)
       exit(1);
     }
   }
+  printf("%s\n", response);
 
   return response;
 }
 
-void close_connection(s, ssl)
-     int s;
-     struct ssl_info ssl;
-{
+void close_connection(enum ePROTOCOL protocol, int s, struct ssl_info* ssl) {
   int ret;
 
-  ret = SSL_shutdown(ssl.ssl);
-  if (ret != 1) {
-    ERR_print_errors_fp(stderr);
-    exit(1);
+  if (protocol == HTTP) {
+    ret = SSL_shutdown(ssl->ssl);
+    if (ret != 1) {
+      ERR_print_errors_fp(stderr);
+      exit(1);
+    }
+    SSL_free(ssl->ssl);
+    SSL_CTX_free(ssl->ctx);
+    ERR_free_strings();
   }
   close(s);
-
-  SSL_free(ssl.ssl);
-  SSL_CTX_free(ssl.ctx);
-  ERR_free_strings();
 }
 
-struct http_response issue_token(cc, authorization_code)
-     struct client_credential cc;
-     char* authorization_code;
-{
+struct http_response issue_token(struct client_credential cc,
+                                 char* authorization_code) {
   char* host;
   char* path;
   char* response;
@@ -280,9 +338,9 @@ struct http_response issue_token(cc, authorization_code)
   ssl = ssl_initialize(s);
 
   send_issue_token_request(cc, authorization_code, host, path, ssl.ssl);
-  response = receive_issue_token_response(ssl.ssl);
+  response = receive_http_response(HTTPS, 0, ssl.ssl);
 
-  close_connection(s, ssl);
+  close_connection(HTTPS, s, &ssl);
 
   result.status_code = get_http_status_code(response);
   result.body = new_http_response_body(response);
@@ -291,13 +349,34 @@ struct http_response issue_token(cc, authorization_code)
   return result;
 }
 
-int main(argc, argv)
-     int argc;
-     char* argv[];
-{
+struct http_response get_my_profile(char* access_token) {
+  int s;
+  char* host;
+  char* path;
+  char* response;
+  struct http_response result;
+
+  host = "api.mixi-platform.com";
+  path = "/2/people/@me/@self";
+
+  s = connect_to_server(host, 80, path);
+  send_get_my_profile_request(access_token, host, path, s);
+  response = receive_http_response(HTTP, s, NULL);
+
+  close_connection(HTTP, s, NULL);
+
+  result.status_code = get_http_status_code(response);
+  result.body = new_http_response_body(response);
+
+  free(response);
+  return result;
+}
+
+int main(int argc, char* argv[]) {
   char* error;
   char* access_token;
   struct http_response token_response;
+  struct http_response my_profile_response;
 
   if (argc != 2) {
     printf("Error: Authorization code is required.\n");
@@ -317,11 +396,12 @@ int main(argc, argv)
     free(error);
   } else {
     access_token = new_json_property_value(token_response.body, "access_token");
-    
+    my_profile_response = get_my_profile(access_token);
+    printf("%s\n", my_profile_response.body);
     free(access_token);
+    free(my_profile_response.body);
   }
 
   free(token_response.body);
-
   return 0;
 }
