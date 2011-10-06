@@ -3,6 +3,7 @@
 ## 必要なもの
 
 > OpenSSL
+
 > GNU開発環境
 
 ## Authorization codeの入手
@@ -16,7 +17,9 @@
 test.c ファイルにある以下の文字列を適切なものに変更する。
 
 > YOUR CLIENT ID
+
 > YOUR CLIENT SECRET
+
 > YOUR REDIRECT URI
 
 ## 実行
