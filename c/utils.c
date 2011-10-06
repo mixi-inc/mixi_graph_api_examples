@@ -29,7 +29,7 @@ char* new_concat_strings(int len, ...) {
   }
   va_end(strings);
 
-  result = (char*)calloc(all_len + 1, sizeof(char));
+  result = calloc(all_len + 1, 1);
   va_start(strings, len);
   for (i = 0; i < len; i++) {
     string = va_arg(strings, char*);
@@ -39,8 +39,4 @@ char* new_concat_strings(int len, ...) {
 
   result[all_len] = '\0';
   return result;
-}
-
-int get_string_byte_length(char* source) {
-  return strlen(source) * sizeof(char);
 }

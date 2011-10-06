@@ -15,7 +15,7 @@ char* new_json_property_value(char* json, char* property_name) {
   char* result;
 
   len = strlen(property_name);
-  property = (char*)malloc(sizeof(char) * (len + 3));
+  property = malloc(len + 3);
   property[0] = '"';
   strncpy(property + 1, property_name, len);
   property[len + 1] = '"';
@@ -23,14 +23,14 @@ char* new_json_property_value(char* json, char* property_name) {
 
   base_pos = strstr(json, property);
   if (base_pos == NULL) {
-    result = (char*)malloc(sizeof(char));
+    result = malloc(1);
     result[0] = '\0';
   } else {
-    base_pos += strlen(property) + sizeof(char) * 2;
+    base_pos += strlen(property) + 2;
     end_pos = strstr(base_pos, "\"");
     len = (int)(end_pos - base_pos);
     
-    result = (char*)malloc(sizeof(char) * (len + 1));
+    result = malloc(len + 1);
     strncpy(result, base_pos, len);
     result[len] = '\0';
   }
@@ -40,9 +40,10 @@ char* new_json_property_value(char* json, char* property_name) {
 }
 
 int get_http_status_code(const char* response) {
-  char buf[3];
+  char buf[4];
 
-  strncpy(buf, response + sizeof(char) * 9, 3);
+  strncpy(buf, response + 9, 3);
+  buf[3] = '\0';
   return atoi(buf);
 }
 
@@ -50,8 +51,8 @@ char* new_http_response_body(const char* response) {
   char* pos;
   char* result;
 
-  pos = strstr(response, "\r\n\r\n") + sizeof(char) * 4;
-  result = (char*)malloc(strlen(pos) + sizeof(char));
+  pos = strstr(response, "\r\n\r\n") + 4;
+  result = malloc(strlen(pos) + 1);
   strcpy(result, pos);
 
   return result;
@@ -135,7 +136,7 @@ char* receive_http_response(enum ePROTOCOL protocol, int s, SSL* ssl) {
   char buf[BUF_LEN];
   char* response;
 
-  response = (char*)malloc(BUF_LEN);
+  response = malloc(BUF_LEN);
   cnt = 1;
   sum = 0;
   while(1) {
@@ -145,9 +146,8 @@ char* receive_http_response(enum ePROTOCOL protocol, int s, SSL* ssl) {
       read_size = read(s, buf, sizeof(buf));
     }
     if (read_size > 0) {
-      if ((sum + read_size + 1) > (sizeof(char) * BUF_LEN * cnt)) {
-        response = (char*)realloc(response,
-                                  sizeof(char) * (BUF_LEN * ++cnt + 1));
+      if ((sum + read_size + 1) > (BUF_LEN * cnt)) {
+        response = realloc(response, BUF_LEN * ++cnt + 1);
       }
       memcpy(response + sum, buf, read_size);
       sum += read_size;
