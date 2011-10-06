@@ -25,4 +25,4 @@ test.o: test.c
 	gcc -c test.c
 
 clean:
-	rm -f test utils.o http.o test.o
+	rm -f test utils.o http.o mixi.o test.o
