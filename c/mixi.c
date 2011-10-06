@@ -2,8 +2,6 @@
 #include "http.h"
 #include "mixi.h"
 
-#define BUF_LEN 256
-
 void send_issue_token_request(struct client_credential cc,
                               char* authorization_code,
                               char* host,
@@ -26,9 +24,9 @@ void send_issue_token_request(struct client_credential cc,
                        cc.redirect_uri,
                        "&code=",
                        authorization_code);
-  len = (int)(strlen(post_body) * sizeof(char));
+  len = (int)(strlen(post_body));
   digit = get_integer_digit(len);
-  post_body_len = (char*)malloc(sizeof(char) * 4);
+  post_body_len = malloc(digit + 1);
   sprintf(post_body_len, "%d", len);
   request =
     new_concat_strings(11,
