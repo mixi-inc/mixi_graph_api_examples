@@ -26,7 +26,7 @@ void send_issue_token_request(struct client_credential cc,
                        authorization_code);
   len = (int)(strlen(post_body));
   digit = get_integer_digit(len);
-  post_body_len = malloc(4);
+  post_body_len = malloc(digit + 1);
   sprintf(post_body_len, "%d", len);
   request =
     new_concat_strings(11,
