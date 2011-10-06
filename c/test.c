@@ -227,7 +227,6 @@ void send_issue_token_request(struct client_credential cc,
                        post_body_len,
                        "\r\n\r\n",
                        post_body);
-  printf("%s\n", request);
   ret = SSL_write(ssl, request, strlen(request));
   if (ret < 1) {
     ERR_print_errors_fp(stderr);
@@ -258,7 +257,6 @@ void send_get_my_profile_request(char* access_token,
                        "Authorization: OAuth ",
                        access_token,
                        "\r\n\r\n");
-  printf("%s\n", request);
   ret = write(s, request, strlen(request));
   if (ret < 1) {
     ERR_print_errors_fp(stderr);
@@ -300,7 +298,6 @@ char* receive_http_response(enum ePROTOCOL protocol, int s, SSL* ssl) {
       exit(1);
     }
   }
-  printf("%s\n", response);
 
   return response;
 }
