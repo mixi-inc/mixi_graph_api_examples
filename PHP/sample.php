@@ -3,7 +3,7 @@ define('CONSUMER_KEY', '[YOUR CONSUMER KEY]');
 define('CONSUMER_SECRET', '[YOUR CONSUMER SECRET]');
 define('REDIRECT_URI', '[YOUR REDIRECT URI]');
 
-class MixiGraphAPiExample
+class MixiGraphAPIExample
 {
     const MIXI_API_ENDPOINT   = 'http://api.mixi-platform.com/2';
     const MIXI_TOKEN_ENDPOINT = 'https://secure.mixi-platform.com/2/token';
@@ -67,7 +67,7 @@ class MixiGraphAPiExample
     private function isExpired($headers) {
         $result = false;
         if (array_key_exists('WWW-Authenticate', $headers)) {
-            if (preg_match('/expired_token/', $header['WWW-Access'])) {
+            if (preg_match('/expired_token/', $header['WWW-Authenticate'])) {
                 $result = true;
             }
         }
@@ -106,7 +106,7 @@ if ($_SERVER['argc'] != 2) {
 }
 
 try {
-    $response = \MixiGraphAPiExample::getInstance($_SERVER['argv'][1])->execute('/people/@me/@self');
+    $response = \MixiGraphAPIExample::getInstance($_SERVER['argv'][1])->execute('/people/@me/@self');
     var_dump($response);
 } catch (Exception $e) {
     var_dump($e->getMessage());
