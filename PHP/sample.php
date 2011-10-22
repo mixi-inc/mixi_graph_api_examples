@@ -89,7 +89,7 @@ class MixiGraphAPIExample
 
                 $this->refreshToken();
                 $response = $this->call($location);
-                $retry_count--;
+                $retry_count = 0;
             } else {
                 throw new UnexpectedValueException('Invalid API Access:'.PHP_EOL.$uri.PHP_EOL.var_export($header, true));
             }
