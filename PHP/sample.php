@@ -45,7 +45,7 @@ class MixiGraphAPIExample
             'grant_type'    => 'refresh_token',
             'client_id'     => CONSUMER_KEY,
             'client_secret' => CONSUMER_SECRET,
-            'refresh_token' => $this->token('refresh_token'),
+            'refresh_token' => $this->token['refresh_token'],
         );
         $this->token = json_decode($this->post(self::MIXI_TOKEN_ENDPOINT, $data), true);
     }
@@ -67,7 +67,7 @@ class MixiGraphAPIExample
     private function isExpired($headers) {
         $result = false;
         if (array_key_exists('WWW-Authenticate', $headers)) {
-            if (preg_match('/expired_token/', $header['WWW-Authenticate'])) {
+            if (preg_match('/expired_token/', $headers['WWW-Authenticate'])) {
                 $result = true;
             }
         }
