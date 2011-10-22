@@ -74,15 +74,22 @@ class MixiGraphAPIExample
         return $result;
     }
 
-    public function call($location) {
+    private function call($location) {
+        static $retry_count = 0;
+
         $uri = self::MIXI_API_ENDPOINT . $location . '?oauth_token=' . $this->token['access_token'];
         $response = file_get_contents($uri, false, stream_context_create(array('http' => array('ignore_errors' => true))));
         $header = $this->parseHeader($http_response_header);
 
         if ($this->isHttpFail($header['Status'])) {
             if ($this->isExpired($header)) {
+                if ($retry_count++ > 1) {
+                    throw new RangeException('Token Refresh Too many retry. '.PHP_EOL.var_export($this->token, true).PHP_EOL.var_export($header, true));
+                }
+
                 $this->refreshToken();
                 $response = $this->call($location);
+                $retry_count--;
             } else {
                 throw new UnexpectedValueException('Invalid API Access:'.PHP_EOL.$uri.PHP_EOL.var_export($header, true));
             }
