@@ -1,3 +1,7 @@
+# Requirement
+
+PHP >= 5.3.0
+
 # 実行手順
 ## コードの書き換え
 コード内のCONSUMER_KEY,　CONSUMER_SECRET,　REDIRECT_URIを適切に書き換えてください。
