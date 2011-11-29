@@ -185,7 +185,7 @@ func handleFriendList(writer http.ResponseWriter, request *http.Request) {
 	} else {
 		params := new(struct{ Friends []friend })
 		params.Friends = friends
-		tmpl, _ := template.Parse(TEMPLATE, nil)
+		tmpl, _ := template.New("mixi").Parse(TEMPLATE)
 		tmpl.Execute(writer, params)
 	}
 }
