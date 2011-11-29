@@ -157,7 +157,7 @@ func redirect(writer http.ResponseWriter, request *http.Request, redirectUrl str
 }
 
 func handleFriendList(writer http.ResponseWriter, request *http.Request) {
-	if request.RawURL == "/favicon.ico" {
+	if request.URL.Path == "/favicon.ico" {
 		return
 	}
 
@@ -167,7 +167,7 @@ func handleFriendList(writer http.ResponseWriter, request *http.Request) {
 	)
 
 	authorizeUrl := AUTHORIZE_URL_BASE + config["client_id"]
-	parts := strings.Split(request.RawURL, "?code=")
+	parts := strings.Split(request.URL.RawPath, "?code=")
 	if 2 <= len(parts) {
 		if err = authorizeCode(parts[1]); err != nil {
 			redirect(writer, request, authorizeUrl)
